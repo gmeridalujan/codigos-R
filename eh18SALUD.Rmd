@@ -1,0 +1,49 @@
+---
+title: "Salud"
+author: "guillermo"
+date: "18/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Salud
+
+poblacion vulnerable al covid-19
+
+```{r,echo=FALSE,message=FALSE}
+load("D:/disco D/guillermo merida/Documentos/eh18.Rdata")
+library(dplyr)
+library(knitr)
+eh18p %>% select(s04a_01a) %>% table() %>% kable()
+niv<- levels(eh18p$s04a_01a)
+d1<-eh18p$s04a_01a==niv[1]
+d2<-eh18p$s04a_01b==niv[1]
+d2[is.na(d2)==T]<-F
+eh18p$diabetes <-(d1==T | d2==T)
+kable(table(eh18p$depto,eh18p$diabetes),caption = "poblacion con diabetes en la muestra")
+
+library(survey)
+sd1<-svydesign(ids =~upm,strata = ~estrato,weights = ~factor,data = eh18p)
+
+t3<-svytable(~depto+diabetes,design=sd1)
+t3<-round(t3,0)
+colnames(t3)<-c("sin diabetes","con diabetes")
+t3<-addmargins(t3,c(1,2))
+t3 %>% kable()
+
+
+
+#para personas mayoeres a 60 años
+eh18p$terceraedad<-eh18p$s02a_03>60
+sd2<-svydesign(ids =~upm,strata = ~estrato,weights = ~factor,data = eh18p)
+t4<-svytable(~terceraedad+diabetes,design=sd2)
+t4<-round(t4,0)
+colnames(t4)<-c("sin diabetes","con diabetes")
+rownames(t4)<-c("Menor de 60 años","Mayor de 60 años")
+t4<-addmargins(t4,c(1,2))
+t4 %>% kable()
+
+```
